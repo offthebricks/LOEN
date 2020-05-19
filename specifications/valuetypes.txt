@@ -1,0 +1,71 @@
+Boolean Types
+
+Boolean types are prefixed by an equals (=), and are denoted by the first letter only of their type.
+
+true: =t
+false: =f
+
+
+Null Type
+
+The null type, like the boolean types, is prefixed by an equals (=), and is denoted by a single letter.
+
+null: =n
+
+
+String Types
+
+Strings are prefixed in all cases by a colon (:), and is double quote contained if any characters are not
+one of the standard UTF-8 alpha numeric character types. Double quotes contained within a string must be
+escaped with a backslash (\); all other characters are legal within the double quoted string, and do not
+require escaping.
+
+tree: :tree
+big tree: :"big tree"
+big "scary" tree: :"big \"scary\" tree"
+
+Empty strings are denoted simply by their prefix, as they have no content.
+
+: :
+
+
+Numeric Types
+
+Integers and floats both positive and negative are prefixed by their corresponding sign. Positive values
+use a plus (+), while negtives use a minus or dash (-).
+
+12: +12
+-12: -12
+12.34: +12.34
+-12.34: -12.34
+
+
+Object Types
+
+Objects are prefixed by an opening curly brace ({), and must additionally be closed/terminated by a closing
+curly brace (}).
+
+{}: {}
+
+
+Array Types
+
+Arrays are prefixed by an opening square brace ([), and must additionally be closed/terminated by a closing
+square brace (]).
+
+[]: []
+
+
+Condensed Array Types
+
+Condensed arrays are prefixed by a less than (<), and must additionally be closed/terminated by a closing
+greater than (>).
+
+<>: <>
+
+All immediate children to a condensed array are always arrays. There must always be at least two arrays
+as the first array child represents the properties of the source objects, of which values have been
+converted to arrays.
+
+[{}]: <[][]>
+[{},{},{}]: <[][][][]>

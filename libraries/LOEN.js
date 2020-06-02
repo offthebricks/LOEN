@@ -110,6 +110,9 @@ var LOEN = (function(){
 					let i, prop, list = Object.getOwnPropertyNames(obj);
 					for(i=0; i<list.length; i++){
 						prop = list[i];
+						if(typeof(obj[prop]) === 'function'){
+							continue;
+						}
 						if(str){
 							str += ",";
 						}

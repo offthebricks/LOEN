@@ -8,7 +8,8 @@ Read a comparison of LOEN vs JSON here: https://www.offthebricks.com/lean-object
 LOEN is versatile in its syntax, and its parser is even fully compatible with JSON. LOEN takes the wordiness of JSON, and trims it down to just what you really need. Additionally LOEN handles repeating objects better by stripping out the duplicate property names. This saves space, and the properties are fully restored when parsed. Here's and example.
 
 JSON array:
-```[
+```
+[
    {"id": 1, "abbreviation": "appl", "name": "Apple"},
    {"id": 2, "abbreviation": "pear", "name": "Pear"},
    {"id": 3, "abbreviation": "bana", "name": "Banana"},

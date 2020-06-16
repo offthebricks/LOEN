@@ -17,20 +17,10 @@ limitations under the License.
 //LOEN - Lean Object Encoding Notation
 
 var LOEN = (function(){
-	var encoding;
 	var config = {
-		getEncoding: function(enableCompression){
-			if(enableCompression){
-				return 1;
-			}
-			return 0;
-		},
-		
+		compressArrays: true,
 		compressionEnabled: function(){
-			if(encoding & 1){
-				return true;
-			}
-			return false;
+			return config.compressArrays;
 		}
 	};
 	
@@ -81,11 +71,10 @@ var LOEN = (function(){
 	};
 	
 	var encoder = {
-		encode: function(obj,encoding_type){
-			if(typeof(encoding_type) === 'undefined'){
-				encoding_type = true;
+		encode: function(obj,compressArrays){
+			if(typeof(compressArrays) === 'boolean' && !compressArrays){
+				config.compressArrays = false;
 			}
-			encoding = config.getEncoding(encoding_type);
 			
 			return encoder.do_encode(obj);
 		},
@@ -137,6 +126,9 @@ var LOEN = (function(){
 			else if(typeof(obj) === 'string'){
 				str = encoder.escapeString(obj);
 			}
+			else if(typeof(obj) === 'function'){
+				//do nothing
+			}
 			else{
 				throw "unknown type passed for encoding";
 			}
@@ -175,10 +167,7 @@ var LOEN = (function(){
 				}
 				if(compress){
 					for(v=0; v<keys.length; v++){
-						if(str !== null){
-			//				str += ",";
-						}
-						else{
+						if(str === null){
 							str = "";
 						}
 						str += encoder.escapeString(keys[v]);
@@ -187,19 +176,13 @@ var LOEN = (function(){
 				}
 			}
 			for(i=0; i<arr.length; i++){
-				if(str !== null){
-			//		str += ",";
-				}
-				else{
+				if(str === null){
 					str = "";
 				}
 				if(compress){
 					substr = null;
 					for(v=0; v<keys.length; v++){
-						if(substr !== null){
-			//				substr += ",";
-						}
-						else{
+						if(substr === null){
 							substr = "";
 						}
 						substr += encoder.do_encode(arr[i][keys[v]]);
@@ -212,6 +195,9 @@ var LOEN = (function(){
 			}
 			if(compress){
 				return "<"+str+">";
+			}
+			if(str === null){
+				str = "";
 			}
 			return "["+str+"]";
 		},
@@ -234,7 +220,6 @@ var LOEN = (function(){
 				return "";
 			}
 			dstr = str;
-			encoding = config.getEncoding(true);
 			try{
 				return decoder.parseSegment();
 			}
@@ -475,18 +460,18 @@ var LOEN = (function(){
 	};
 	
 	return {
-		encode: function(obj,encoding){
-			return encoder.encode(obj,encoding);
+		encode: function(obj,compressArrays){
+			return encoder.encode(obj,compressArrays);
 		},
-		stringify: function(obj,encoding){
-			return LON.encode(obj,encoding);
+		stringify: function(obj,compressArrays){
+			return encoder.encode(obj,compressArrays);
 		},
 		
 		decode: function(str){
 			return decoder.decode(str);
 		},
 		parse: function(str){
-			return LON.decode(str);
+			return decoder.decode(str);
 		}
 	};
 })();

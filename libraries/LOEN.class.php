@@ -18,18 +18,14 @@ limitations under the License.
 //LOEN - Lean Object Encoding Notation
 
 class LOEN{
-	private static function getEncoding($enableCompression){
-		if($enableCompression){
-			return 1;
-		}
-		return 0;
+	private $compressionEnabled = TRUE;
+	
+	public function __construct($enableArrayCompression=TRUE){
+		$this->compressionEnabled = $enableArrayCompression;
 	}
 	
-	private static function compressionEnabled($encoding){
-		if($encoding & 1){
-			return TRUE;
-		}
-		return FALSE;
+	private function isCompressionEnabled(){
+		return $this->compressionEnabled;
 	}
 	
 	private static function isAlphaNumeric($str){
@@ -59,16 +55,20 @@ class LOEN{
 	
 ###################################################################
 	
-	public static function encode($obj,$enableCompression=TRUE){
-		$encoding = self::getEncoding($enableCompression);
-		return self::do_encode($obj,$encoding);
+	public static function encode($obj,$compressArrays=TRUE){
+		return self::encodeObject($obj,$compressArrays);
 	}
 	
-	public static function stringify($obj,$encoding=FALSE){
-		return self::encode($obj);
+	public static function stringify($obj,$compressArrays=TRUE){
+		return self::encodeObject($obj,$compressArrays);
 	}
 	
-	private static function do_encode($obj,$encoding){
+	private static function encodeObject($obj,$compressArrays){
+		$loen = new self($compressArrays);
+		return $loen->doEncode($obj);
+	}
+	
+	public function doEncode($obj){
 		$str = "";
 		
 		if($obj === NULL){
@@ -86,7 +86,7 @@ class LOEN{
 				if($str){
 					$str .= ",";
 				}
-				$tmp = self::do_encode($value,$encoding);
+				$tmp = $this->doEncode($value);
 				//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 				if(!self::isAlphaNumeric(substr($tmp,0,1))){
 					$str .= self::escapeString($prop,TRUE).$tmp;
@@ -100,10 +100,10 @@ class LOEN{
 		else if(is_array($obj)){
 			//check if array does not have sequential numeric keys
 			if(self::isAssocArr($obj)){
-				$str = self::do_encode((object)$obj,$encoding);
+				$str = $this->doEncode((object)$obj);
 			}
 			else{
-				$str = self::encode_array($obj,$encoding);
+				$str = $this->encode_array($obj);
 			}
 		}
 		else if(is_numeric($obj) && !is_string($obj)){
@@ -121,15 +121,15 @@ class LOEN{
 		return $str;
 	}
 	
-	private static function encode_array($arr,$encoding){
+	private function encode_array($arr){
 		if(!$arr){
 			return "";
 		}
 		if(sizeof($arr) == 1){
-			return "[".self::do_encode($arr[0],$encoding)."]";
+			return "[".$this->doEncode($arr[0])."]";
 		}
 		$str = NULL;
-		$keys = []; $compress = self::compressionEnabled($encoding);
+		$keys = []; $compress = $this->isCompressionEnabled();
 		if($compress){
 			for($i=0; $i<2; $i++){
 				if(is_object($arr[$i])){
@@ -157,10 +157,7 @@ class LOEN{
 			}
 			if($compress){
 				foreach($keys as $key){
-					if($str !== NULL){
-		//				$str .= ",";
-					}
-					else{
+					if($str === NULL){
 						$str = "";
 					}
 					$str .= self::escapeString($key);
@@ -169,32 +166,26 @@ class LOEN{
 			}
 		}
 		foreach($arr as $i => $val){
-			if($str !== NULL){
-		//		$str .= ",";
-			}
-			else{
+			if($str === NULL){
 				$str = "";
 			}
 			if($compress){
 				$substr = NULL;
 				foreach($keys as $key){
-					if($substr !== NULL){
-		//				$substr .= ",";
-					}
-					else{
+					if($substr === NULL){
 						$substr = "";
 					}
 					if(is_object($val)){
-						$substr .= self::do_encode($val->$key,$encoding);
+						$substr .= $this->doEncode($val->$key);
 					}
 					else{
-						$substr .= self::do_encode($val[$key],$encoding);
+						$substr .= $this->doEncode($val[$key]);
 					}
 				}
 				$str .= "[".$substr."]";
 			}
 			else{
-				$str .= self::do_encode($val,$encoding);
+				$str .= $this->doEncode($val);
 			}
 		}
 		if($compress){
@@ -226,9 +217,8 @@ class LOEN{
 		if(!strlen($str)){
 			return "";
 		}
-		$header = self::getEncoding(TRUE);
 		try{
-			return self::parseSegment($str,$header);
+			return self::parseSegment($str);
 		}
 		catch(\Exception $e){
 			if($e->getMessage()){

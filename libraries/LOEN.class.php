@@ -456,6 +456,9 @@ class LOEN{
 		foreach($arr as $data){
 			$row = [];
 			foreach($keys as $i => $key){
+				if(!array_key_exists($i,$data)){
+					throw new \Exception("missing key ($key) in compressed array");
+				}
 				$row[$key] = $data[$i];
 			}
 			$res[] = (object)$row;

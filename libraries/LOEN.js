@@ -167,6 +167,9 @@ var LOEN = (function(){
 				}
 				if(compress){
 					for(v=0; v<keys.length; v++){
+						if(typeof(arr[0][keys[v]]) === 'function'){
+							continue;
+						}
 						if(str === null){
 							str = "";
 						}

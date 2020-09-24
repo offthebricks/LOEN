@@ -188,6 +188,10 @@ var LOEN = (function(){
 						if(substr === null){
 							substr = "";
 						}
+						//verify that this key actually exists
+						if(typeof(arr[i][keys[v]]) === 'undefined'){
+							throw "missing key '" + keys[v] + "' when attempting to compress an array";
+						}
 						substr += encoder.do_encode(arr[i][keys[v]]);
 					}
 					str += "["+substr+"]";

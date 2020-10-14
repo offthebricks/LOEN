@@ -118,7 +118,7 @@ var LOEN = (function(){
 				}
 			}
 			else if(utils.isNumeric(obj) && typeof(obj) !== 'string'){
-				if(obj > 0){
+				if(obj >= 0){
 					obj = "+"+obj;
 				}
 				str = ""+obj;

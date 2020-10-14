@@ -107,7 +107,7 @@ class LOEN{
 			}
 		}
 		else if(is_numeric($obj) && !is_string($obj)){
-			if($obj > 0){
+			if($obj >= 0){
 				$obj = "+".$obj;
 			}
 			$str = $obj;

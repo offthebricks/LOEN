@@ -89,10 +89,10 @@ class LOEN{
 				$tmp = $this->doEncode($value);
 				//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 				if(!self::isAlphaNumeric(substr($tmp,0,1))){
-					$str .= self::escapeString($prop,TRUE).$tmp;
+					$str .= self::escapeString($prop).$tmp;
 				}
 				else{
-					$str .= self::escapeString($prop,TRUE).":".$tmp;
+					$str .= self::escapeString($prop).":".$tmp;
 				}
 			}
 			$str = "{".$str."}";
@@ -157,10 +157,14 @@ class LOEN{
 			}
 			if($compress){
 				foreach($keys as $key){
+					$tmp = self::escapeString($key);
 					if($str === NULL){
 						$str = "";
 					}
-					$str .= self::escapeString($key);
+					else if(self::isAlphaNumeric(substr($tmp,0,1))){
+						$tmp = ",".$tmp;
+					}
+					$str .= $tmp;
 				}
 				$str = "[".$str."]";
 			}
@@ -172,15 +176,20 @@ class LOEN{
 			if($compress){
 				$substr = NULL;
 				foreach($keys as $key){
+					if(is_object($val)){
+						$tmp = $this->doEncode($val->$key);
+					}
+					else{
+						$tmp = $this->doEncode($val[$key]);
+					}
 					if($substr === NULL){
 						$substr = "";
 					}
-					if(is_object($val)){
-						$substr .= $this->doEncode($val->$key);
+					if(self::isAlphaNumeric(substr($tmp,0,1))){
+						//assume this is a string
+						$tmp = ":".$tmp;
 					}
-					else{
-						$substr .= $this->doEncode($val[$key]);
-					}
+					$substr .= $tmp;
 				}
 				$str .= "[".$substr."]";
 			}
@@ -201,14 +210,16 @@ class LOEN{
 		return array_keys($arr) !== range(0, count($arr) - 1);
 	}
 	
-	private static function escapeString($str,$isProperty=FALSE){
+	private static function escapeString($str){
 		if(!self::isAlphaNumeric($str)){
+			//escape all double quotes
 			$str = '"'.str_replace('"','\"',$str).'"';
+			//escape all newlines
+			$str = str_replace("\n","\\n",$str);
+			//escape all carriage returns
+			$str = str_replace("\r","\\r",$str);
 		}
-		if($isProperty){
-			return $str;
-		}
-		return ":".$str;
+		return $str;
 	}
 	
 ###################################################################
@@ -333,6 +344,10 @@ class LOEN{
 		}while($res === NULL);
 		//replace all escaped double quotes with regular double quotes
 		$res = str_replace('\"','"',$res);
+		//replace all escaped newlines with regular newlines
+		$res = str_replace("\\n","\n",$res);
+		//replace all escaped carriage returns with regular carriage returns
+		$res = str_replace("\\r","\r",$res);
 		
 		return $res;
 	}

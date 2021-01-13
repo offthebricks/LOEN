@@ -108,10 +108,10 @@ var LOEN = (function(){
 						tmp = encoder.do_encode(obj[prop]);
 						//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 						if(!utils.isAlphaNumeric(tmp.substring(0,1))){
-							str += encoder.escapeString(prop,true)+tmp
+							str += encoder.escapeString(prop)+tmp
 						}
 						else{
-							str += encoder.escapeString(prop,true)+":"+tmp
+							str += encoder.escapeString(prop)+":"+tmp
 						}
 					}
 					str = "{"+str+"}";
@@ -143,7 +143,7 @@ var LOEN = (function(){
 			if(arr.length == 1){
 				return "["+encoder.do_encode(arr[0])+"]";
 			}
-			let i, v, check, str = null, substr, keys = [], compress = config.compressionEnabled();
+			let i, v, check, tmp, str = null, substr, keys = [], compress = config.compressionEnabled();
 			if(compress){
 				for(i=0; i<2; i++){
 					if(arr[i] && typeof(arr[i]) === 'object'){
@@ -170,10 +170,14 @@ var LOEN = (function(){
 						if(typeof(arr[0][keys[v]]) === 'function'){
 							continue;
 						}
+						tmp = encoder.escapeString(keys[v]);
 						if(str === null){
 							str = "";
 						}
-						str += encoder.escapeString(keys[v]);
+						else if(utils.isAlphaNumeric(tmp.substring(0,1))){
+							tmp = "," + tmp;
+						}
+						str += tmp;
 					}
 					str = "["+str+"]";
 				}
@@ -192,7 +196,12 @@ var LOEN = (function(){
 						if(typeof(arr[i][keys[v]]) === 'undefined'){
 							throw "missing key '" + keys[v] + "' when attempting to compress an array";
 						}
-						substr += encoder.do_encode(arr[i][keys[v]]);
+						tmp = encoder.do_encode(arr[i][keys[v]]);
+						if(utils.isAlphaNumeric(tmp.substring(0,1))){
+							//assume this is a string
+							tmp = ":" + tmp;
+						}
+						substr += tmp;
 					}
 					str += "["+substr+"]";
 				}
@@ -209,14 +218,16 @@ var LOEN = (function(){
 			return "["+str+"]";
 		},
 		
-		escapeString: function(str,isProperty){
+		escapeString: function(str){
 			if(str.length > 0 && !utils.isAlphaNumeric(str)){
+				//escape all double quotes
 				str = '"'+utils.replaceAll(str,'"',"\\\"")+'"';
+				//escape all newlines
+				str = utils.replaceAll(str,"\n","\\n");
+				//escape all carriage returns
+				str = utils.replaceAll(str,"\r","\\r");
 			}
-			if(isProperty){
-				return str;
-			}
-			return ":"+str;
+			return str;
 		}
 	};
 	
@@ -334,6 +345,10 @@ var LOEN = (function(){
 			}while(res === null);
 			//replace all escaped double quotes with regular double quotes
 			res = utils.replaceAll(res,"\\\"",'"');
+			//replace all escaped newlines with regular newlines
+			res = utils.replaceAll(res,"\\n","\n");
+			//replace all escaped carriage returns with regular carriage returns
+			res = utils.replaceAll(res,"\\r","\r");
 			
 			return res;
 		},

@@ -19,13 +19,11 @@ limitations under the License.
 
 class LOEN{
 	private $compressionEnabled = TRUE;
+	private $escapeLineEndings = TRUE;
 	
-	public function __construct($enableArrayCompression=TRUE){
+	public function __construct($enableArrayCompression=TRUE,$enableEscapeLineEndings=TRUE){
 		$this->compressionEnabled = $enableArrayCompression;
-	}
-	
-	private function isCompressionEnabled(){
-		return $this->compressionEnabled;
+		$this->escapeLineEndings = $enableEscapeLineEndings;
 	}
 	
 	private static function isAlphaNumeric($str){
@@ -33,6 +31,13 @@ class LOEN{
 			return TRUE;
 		}
 		return FALSE;
+	}
+	
+	private static function isAssocArr(array $arr){
+		if($arr === []){
+			return FALSE;
+		}
+		return array_keys($arr) !== range(0, count($arr) - 1);
 	}
 	
 	private static function skipWhitespace(&$str){
@@ -55,16 +60,16 @@ class LOEN{
 	
 ###################################################################
 	
-	public static function encode($obj,$compressArrays=TRUE){
-		return self::encodeObject($obj,$compressArrays);
+	public static function encode($obj,$compressArrays=TRUE,$escapeLineEndings=TRUE){
+		return self::encodeObject($obj,$compressArrays,$escapeLineEndings);
 	}
 	
-	public static function stringify($obj,$compressArrays=TRUE){
-		return self::encodeObject($obj,$compressArrays);
+	public static function stringify($obj,$compressArrays=TRUE,$escapeLineEndings=TRUE){
+		return self::encodeObject($obj,$compressArrays,$escapeLineEndings);
 	}
 	
-	private static function encodeObject($obj,$compressArrays){
-		$loen = new self($compressArrays);
+	private static function encodeObject($obj,$compressArrays,$escapeLineEndings){
+		$loen = new self($compressArrays,$escapeLineEndings);
 		return $loen->doEncode($obj);
 	}
 	
@@ -89,10 +94,10 @@ class LOEN{
 				$tmp = $this->doEncode($value);
 				//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 				if(!self::isAlphaNumeric(substr($tmp,0,1))){
-					$str .= self::escapeString($prop).$tmp;
+					$str .= $this->escapeString($prop).$tmp;
 				}
 				else{
-					$str .= self::escapeString($prop).":".$tmp;
+					$str .= $this->escapeString($prop).":".$tmp;
 				}
 			}
 			$str = "{".$str."}";
@@ -113,7 +118,7 @@ class LOEN{
 			$str = $obj;
 		}
 		else if(is_string($obj)){
-			$str = self::escapeString($obj);
+			$str = $this->escapeString($obj);
 		}
 		else{
 			throw new \Exception("unknown type passed for encoding");
@@ -129,7 +134,7 @@ class LOEN{
 			return "[".$this->doEncode($arr[0])."]";
 		}
 		$str = NULL;
-		$keys = []; $compress = $this->isCompressionEnabled();
+		$keys = []; $compress = $this->compressionEnabled;
 		if($compress){
 			for($i=0; $i<2; $i++){
 				if(is_object($arr[$i])){
@@ -157,7 +162,7 @@ class LOEN{
 			}
 			if($compress){
 				foreach($keys as $key){
-					$tmp = self::escapeString($key);
+					$tmp = $this->escapeString($key);
 					if($str === NULL){
 						$str = "";
 					}
@@ -203,21 +208,16 @@ class LOEN{
 		return "[".$str."]";
 	}
 	
-	private static function isAssocArr(array $arr){
-		if($arr === []){
-			return FALSE;
-		}
-		return array_keys($arr) !== range(0, count($arr) - 1);
-	}
-	
-	private static function escapeString($str){
+	private function escapeString($str){
 		if(!self::isAlphaNumeric($str)){
 			//escape all double quotes
 			$str = '"'.str_replace('"','\"',$str).'"';
-			//escape all newlines
-			$str = str_replace("\n","\\n",$str);
-			//escape all carriage returns
-			$str = str_replace("\r","\\r",$str);
+			if($this->escapeLineEndings){
+				//escape all newlines
+				$str = str_replace("\n","\\n",$str);
+				//escape all carriage returns
+				$str = str_replace("\r","\\r",$str);
+			}
 		}
 		return $str;
 	}
@@ -243,9 +243,7 @@ class LOEN{
 	}
 	
 	private static function parseSegment(&$str){
-		$res = "";
 		$type = self::skipWhitespace($str);
-		//error_log($type." - ".substr($str,0,5));
 		if(!self::isAlphaNumeric($type)){
 			$str = substr($str,1);
 			switch($type){

@@ -27,7 +27,9 @@ class LOEN{
 	}
 	
 	private static function isAlphaNumeric($str){
-		if(!strlen($str) || ctype_alnum($str)){		//zero length strings return as true
+		//zero length strings need to return as true in LOEN
+		//on linux a variable of type int will always return false, so make it a string first
+		if(!strlen($str) || ctype_alnum("".$str)){
 			return TRUE;
 		}
 		return FALSE;
@@ -118,7 +120,7 @@ class LOEN{
 			$str = $obj;
 		}
 		else if(is_string($obj)){
-			$str = $this->escapeString($obj);
+			$str = ":".$this->escapeString($obj);
 		}
 		else{
 			throw new \Exception("unknown type passed for encoding");

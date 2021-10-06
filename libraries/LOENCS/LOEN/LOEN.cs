@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright 2021 OffTheBricks - https://github.com/offthebricks/LOEN
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,20 +124,6 @@ namespace LOEN
 			return source;
 		}
 
-		public static string escapeString(string str)
-		{
-			if (!isAlphaNumeric(str))
-			{
-				//escape all double quotes
-				str = '"' + str.Replace('"', '\"') + '"';
-				//escape all newlines
-				str = str.Replace("\n", "\\n");
-				//escape all carriage returns
-				str = str.Replace("\r", "\\r");
-			}
-			return str;
-		}
-
 		public static bool is_array(object obj)
 		{
 			Type type = obj.GetType();
@@ -183,42 +169,57 @@ namespace LOEN
 
 	public class Encoder
 	{
-
-		private bool CompressionEnabled = true;
-
-		public Encoder(bool enableArrayCompression = true)
-		{
-			this.CompressionEnabled = enableArrayCompression;
-		}
-
-		private bool isCompressionEnabled()
-		{
-			return this.CompressionEnabled;
-		}
-
 		/// <summary>
 		/// Calls doEncode to convert inobj to a LOEN encoded string
 		/// </summary>
-		public static string Encode(object inobj, bool compressArrays = true)
+		public static string Encode(object inobj, bool compressArrays = true, bool escapeLineEndings = true)
 		{
-			var loen = new Encoder(compressArrays);
+			var loen = new Encoder(compressArrays, escapeLineEndings);
 			return loen.doEncode(inobj);
 		}
 
 		/// <summary>
 		/// Alias of Encode
 		/// </summary>
-		public static string Serialize(object inobj, bool compressArrays = true)
+		public static string Serialize(object inobj, bool compressArrays = true, bool escapeLineEndings = true)
 		{
-			return Encode(inobj, compressArrays);
+			return Encode(inobj, compressArrays, escapeLineEndings);
 		}
 
 		/// <summary>
 		/// Alias of Encode
 		/// </summary>
-		public static string Stringify(object inobj, bool compressArrays = true)
+		public static string Stringify(object inobj, bool compressArrays = true, bool escapeLineEndings = true)
 		{
-			return Encode(inobj, compressArrays);
+			return Encode(inobj, compressArrays, escapeLineEndings);
+		}
+
+		/****************************************************/
+
+		private bool CompressionEnabled = true;
+		private bool EscapeLineEndings = true;
+
+		public Encoder(bool enableArrayCompression = true, bool enableEscapeLineEndings = true)
+		{
+			this.CompressionEnabled = enableArrayCompression;
+			this.EscapeLineEndings = enableEscapeLineEndings;
+		}
+
+		public string escapeString(string str)
+		{
+			if (!Utilities.isAlphaNumeric(str))
+			{
+				//escape all double quotes
+				str = '"' + str.Replace('"', '\"') + '"';
+				if (this.EscapeLineEndings)
+				{
+					//escape all newlines
+					str = str.Replace("\n", "\\n");
+					//escape all carriage returns
+					str = str.Replace("\r", "\\r");
+				}
+			}
+			return str;
 		}
 
 		/// <summary>
@@ -265,7 +266,7 @@ namespace LOEN
 				}
 				else if (obj is string)
 				{
-					str = Utilities.escapeString((string)obj);
+					str = ":" + this.escapeString((string)obj);
 				}
 				else if (Utilities.is_dictionary(obj))
 				{
@@ -290,11 +291,11 @@ namespace LOEN
 						//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 						if (!Utilities.isAlphaNumeric(tmp.Substring(0, 1)))
 						{
-							str += Utilities.escapeString(keylist[i]) + tmp;
+							str += this.escapeString(keylist[i]) + tmp;
 						}
 						else
 						{
-							str += Utilities.escapeString(keylist[i]) + ":" + tmp;
+							str += this.escapeString(keylist[i]) + ":" + tmp;
 						}
 						i++; 
 					}
@@ -338,11 +339,11 @@ namespace LOEN
 						}
 						//if the value is already prefix with a non-alphanumeric characer, don't need the colon
 						if(!string.IsNullOrEmpty(tmp) && !Utilities.isAlphaNumeric(tmp.Substring(0, 1))){
-							str += Utilities.escapeString(member.Name) + tmp;
+							str += this.escapeString(member.Name) + tmp;
 						}
 						else
 						{
-							str += Utilities.escapeString(member.Name) + ":" + tmp;
+							str += this.escapeString(member.Name) + ":" + tmp;
 						}
 					}
 					str = "{" + str + "}";
@@ -370,7 +371,7 @@ namespace LOEN
 			MemberInfo[] members = null;
 			var keys = new List<string>();
 			var check = new List<string>();
-			bool compress = this.isCompressionEnabled();
+			bool compress = this.CompressionEnabled;
 			if (compress)
 			{
 				for(int i=0; i<2; i++)
@@ -425,7 +426,7 @@ namespace LOEN
 					string tmp;
 					foreach(string key in keys)
 					{
-						tmp = Utilities.escapeString(key);
+						tmp = this.escapeString(key);
 						if(str == null)
 						{
 							str = "";
@@ -564,7 +565,7 @@ namespace LOEN
 			return Decode<TOutput>(loen);
 		}
 
-		private static object CreateInstance(Type objtype, object loenobj)
+		private static object CreateInstance(Type objtype, object loenobj = null)
 		{
 			object obj;
 			//initialize the variable so that type detecting code will work
@@ -581,7 +582,6 @@ namespace LOEN
 				}
 				else if (objtype.GenericTypeArguments.Length > 1)
 				{
-					//obj = (IList)Activator.CreateInstance(objtype.GenericTypeArguments[0], ((IList)loenobj).Count);
 					obj = (IDictionary)Activator.CreateInstance(objtype);
 				}
 				//initialize list
@@ -597,7 +597,7 @@ namespace LOEN
 			return obj;
 		}
 
-		private static object ConvertGenericToDefined(object generic, object obj)// where T : new()
+		private static object ConvertGenericToDefined(object generic, object obj)
 		{
 			object tmp = null, tmp2 = null;
 
@@ -619,14 +619,24 @@ namespace LOEN
 				{
 					var gendic = (IDictionary)generic;
 					var keys = new List<object>();
-					foreach(var key in gendic.Keys)
+					//decoder dictionary keys are always strings, so need to check if that's the actual type we need
+					tmp2 = CreateInstance(((IDictionary)obj).GetType().GetGenericArguments()[0]);
+					foreach (var key in gendic.Keys)
 					{
-						keys.Add(key);
+						if(tmp2 is string)
+						{
+							keys.Add(key);
+						}
+						else
+						{
+							keys.Add(Utilities.CastNumber(key, tmp2));
+						}
 					}
 					int i = 0;
 					foreach(var item in gendic.Values)
 					{
-						tmp = ConvertGenericToDefined(item, ((IDictionary)obj).GetType().GetGenericArguments()[1]);
+						tmp2 = CreateInstance(((IDictionary)obj).GetType().GetGenericArguments()[1], item);
+						tmp = ConvertGenericToDefined(item, tmp2);
 						((IDictionary)obj).Add(keys[i], tmp);
 						i++;
 					}

@@ -1,5 +1,3 @@
-﻿using System;
-using LOEN;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,14 +10,17 @@ namespace LOEN.Tests
 		/// This method is extra important since other tests rely upon it
 		/// It should be very similar to the one found in the LOEN class
 		/// </summary>
-		private string escapeString(string str)
+		private string escapeString(string str, bool escapeLineEndings = true)
 		{
 			//escape all double quotes
 			str = '"' + str.Replace('"', '\"') + '"';
-			//escape all newlines
-			str = str.Replace("\n", "\\n");
-			//escape all carriage returns
-			str = str.Replace("\r", "\\r");
+			if (escapeLineEndings)
+			{
+				//escape all newlines
+				str = str.Replace("\n", "\\n");
+				//escape all carriage returns
+				str = str.Replace("\r", "\\r");
+			}
 			return str;
 		}
 
@@ -91,16 +92,25 @@ namespace LOEN.Tests
 			string val;
 
 			val = Encoder.Encode(testObj.strnowhitespace);
-			Assert.AreEqual(testObj.strnowhitespace, val);
+			Assert.AreEqual(":" + testObj.strnowhitespace, val);
 
 			val = Encoder.Encode(testObj.stroneline);
-			Assert.AreEqual(this.escapeString(testObj.stroneline), val);
+			Assert.AreEqual(":" + this.escapeString(testObj.stroneline), val);
 
 			val = Encoder.Encode(testObj.strmultiline);
-			Assert.AreEqual(this.escapeString(testObj.strmultiline), val);
+			Assert.AreEqual(":" + this.escapeString(testObj.strmultiline), val);
 
 			val = Encoder.Encode(testObj.strempty);
-			Assert.AreEqual(testObj.strempty, val);
+			Assert.AreEqual(":", val);
+		}
+
+		[TestMethod]
+		public void TestStringLineEndingOption()
+		{
+			var testObj = new TestModels.FullyLoaded(true);
+			
+			string val = Encoder.Encode(testObj.strmultiline, true, false);
+			Assert.AreEqual(":" + this.escapeString(testObj.strmultiline, false), val);
 		}
 
 		[TestMethod]
@@ -112,7 +122,7 @@ namespace LOEN.Tests
 
 			val = Encoder.Encode(testObj);
 
-			foreach(var member in members)
+			foreach (var member in members)
 			{
 				if(check != "")
 				{
@@ -122,8 +132,8 @@ namespace LOEN.Tests
 				{
 					case "id": check += "id" + Encoder.Encode(testObj.id); break;
 					case "name": check += "name" + Encoder.Encode(testObj.name); break;
-					case "label": check += "label:" + Encoder.Encode(testObj.label); break;
-					case "property": check += "property:" + Encoder.Encode(testObj.property); break;
+					case "label": check += "label" + Encoder.Encode(testObj.label); break;
+					case "property": check += "property" + Encoder.Encode(testObj.property); break;
 				}
 			}
 			check = "{" + check + "}";
@@ -187,8 +197,8 @@ namespace LOEN.Tests
 					{
 						case "id": subcheck += Encoder.Encode(obj.id); break;
 						case "name": subcheck += Encoder.Encode(obj.name); break;
-						case "label": subcheck += ":" + Encoder.Encode(obj.label); break;
-						case "property": subcheck += ":" + Encoder.Encode(obj.property); break;
+						case "label": subcheck += Encoder.Encode(obj.label); break;
+						case "property": subcheck += Encoder.Encode(obj.property); break;
 					}
 				}
 				check += "[" + subcheck + "]";
@@ -200,12 +210,31 @@ namespace LOEN.Tests
 		}
 
 		[TestMethod]
+		public void TestArrayCompressionOption()
+		{
+			var testObj = new TestModels.FullyLoaded(true);
+			var shortlistObj = new TestModels.ShortList(237);
+			var members = shortlistObj.GetType().GetMembers(BindingFlags.Public | BindingFlags.Instance);
+			string val, check = "";
+
+			val = Encoder.Encode(testObj.arrshortlist, false);
+
+			foreach (TestModels.ShortList obj in testObj.arrshortlist)
+			{
+				check += Encoder.Encode(obj);
+			}
+			check = "[" + check + "]";
+
+			Assert.AreEqual(check, val);
+		}
+
+		[TestMethod]
 		public void TestStandardList()
 		{
 			var testObj = new TestModels.FullyLoaded(true);
 			string val, check = "";
 
-			foreach(string item in testObj.liststr)
+			foreach (string item in testObj.liststr)
 			{
 				check += Encoder.Encode(item);
 			}
@@ -255,8 +284,8 @@ namespace LOEN.Tests
 					{
 						case "id": subcheck += Encoder.Encode(obj.id); break;
 						case "name": subcheck += Encoder.Encode(obj.name); break;
-						case "label": subcheck += ":" + Encoder.Encode(obj.label); break;
-						case "property": subcheck += ":" + Encoder.Encode(obj.property); break;
+						case "label": subcheck += Encoder.Encode(obj.label); break;
+						case "property": subcheck += Encoder.Encode(obj.property); break;
 					}
 				}
 				check += "[" + subcheck + "]";
@@ -282,7 +311,7 @@ namespace LOEN.Tests
 			foreach(var dic in testObj.listdictionary)
 			{
 				check += "[";
-				foreach(var item in dic)
+				foreach (var item in dic)
 				{
 					check += Encoder.Encode(item.Value);
 				}
@@ -304,7 +333,7 @@ namespace LOEN.Tests
 			check = "";
 			for (i = 2; i < 7; i++)
 			{
-				if(i > 2)
+				if (i > 2)
 				{
 					check += ",";
 				}
@@ -318,11 +347,11 @@ namespace LOEN.Tests
 			check = "";
 			for (i = 3; i < 8; i++)
 			{
-				if(i > 3)
+				if (i > 3)
 				{
 					check += ",";
 				}
-				check += "\"idx = " + i.ToString() + "\"\"value is " + (i + 10).ToString() + "\"";
+				check += "\"idx = " + i.ToString() + "\":\"value is " + (i + 10).ToString() + "\"";
 			}
 			check = "{" + check + "}";
 

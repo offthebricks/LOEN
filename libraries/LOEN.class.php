@@ -309,13 +309,13 @@ class LOEN{
 		}
 		$str = substr($str,strlen($res)-1);
 		if($equalflag){
-			if($res == "n"){
+			if($res == "n" || $res == "null"){
 				return NULL;
 			}
-			if($res == "t"){
+			if($res == "t" || $res == "true"){
 				return TRUE;
 			}
-			if($res == "f"){
+			if($res == "f" || $res == "false"){
 				return FALSE;
 			}
 			if(!is_numeric($res)){

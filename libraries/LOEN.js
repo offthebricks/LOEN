@@ -311,13 +311,13 @@ var LOEN = (function(){
 			}
 			dstr = dstr.substring(res.length-1);
 			if(equalflag){
-				if(res == "n"){
+				if(res == "n" || res == "null"){
 					return null;
 				}
-				if(res == "t"){
+				if(res == "t" || res == "true"){
 					return true;
 				}
-				if(res == "f"){
+				if(res == "f" || res == "false"){
 					return false;
 				}
 				if(!utils.isNumeric(res)){

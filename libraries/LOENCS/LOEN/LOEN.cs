@@ -832,15 +832,15 @@ namespace LOEN
 			str = str.Substring(res.Length - 1);
 			if (equalflag)
 			{
-				if (res == "n")
+				if (res == "n" || res == "null")
 				{
 					return null;
 				}
-				if (res == "t")
+				if (res == "t" || res == "true")
 				{
 					return true;
 				}
-				if (res == "f")
+				if (res == "f" || res == "false")
 				{
 					return false;
 				}

@@ -168,8 +168,8 @@ class LOEN{
 					if($str === NULL){
 						$str = "";
 					}
-					else if(self::isAlphaNumeric(substr($tmp,0,1))){
-						$tmp = ",".$tmp;
+					if(self::isAlphaNumeric(substr($tmp,0,1))){
+						$tmp = ":".$tmp;
 					}
 					$str .= $tmp;
 				}

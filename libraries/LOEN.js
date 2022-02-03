@@ -124,7 +124,7 @@ var LOEN = (function(){
 				str = ""+obj;
 			}
 			else if(typeof(obj) === 'string'){
-				str = encoder.escapeString(obj);
+				str = ":" + encoder.escapeString(obj);
 			}
 			else if(typeof(obj) === 'function'){
 				//do nothing
@@ -174,8 +174,8 @@ var LOEN = (function(){
 						if(str === null){
 							str = "";
 						}
-						else if(utils.isAlphaNumeric(tmp.substring(0,1))){
-							tmp = "," + tmp;
+						if(utils.isAlphaNumeric(tmp.substring(0,1))){
+							tmp = ":" + tmp;
 						}
 						str += tmp;
 					}

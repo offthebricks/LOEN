@@ -200,10 +200,7 @@ class EncoderTests{
 
 		$list = get_object_vars($shortlistObj);
 		foreach($list as $prop => $value){
-			if($check != ""){
-				$check .= ",";
-			}
-			$check .= $prop;
+			$check .= ":" . $prop;
 		}
 		$check = "[" . $check . "]";
 

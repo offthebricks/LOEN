@@ -47,6 +47,8 @@ contained if any characters are not one of the standard UTF-8
 alphanumeric character types. Double quotes contained within a string
 must be escaped with a backslash (\); all other characters are legal
 within the double quoted string, and do not require escaping.
+** Exception ** The string "null" must always be contained within double
+quotes, so as not to be confused with JSON {"str":null}
 
 tree: :tree
 big tree: :"big tree"

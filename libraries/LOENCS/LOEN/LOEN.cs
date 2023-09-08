@@ -219,6 +219,10 @@ namespace LOEN
 					str = str.Replace("\r", "\\r");
 				}
 			}
+			//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
+			if(str == "null"){
+				str = "\"" + str + "\"";
+			}
 			return str;
 		}
 
@@ -776,6 +780,10 @@ namespace LOEN
 					case "\"":
 						return parseQuotedString(ref str);
 					case ":":
+						//if this is JSON, but not a string
+						if(str.Substring(0, 1) != "\""){
+							return parseValue(ref str, true);
+						}
 						break;
 					case "-":
 						str = "-" + str;        //negative number

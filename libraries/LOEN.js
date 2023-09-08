@@ -130,7 +130,7 @@ var LOEN = (function(){
 				//do nothing
 			}
 			else{
-				throw "unknown type passed for encoding";
+				throw "unknown type passed for encoding: " + typeof(obj);
 			}
 			
 			return str;
@@ -227,6 +227,10 @@ var LOEN = (function(){
 				//escape all carriage returns
 				str = utils.replaceAll(str,"\r","\\r");
 			}
+			//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
+			if(str === "null"){
+				str = '"' + str + '"';
+			}
 			return str;
 		}
 	};
@@ -264,6 +268,10 @@ var LOEN = (function(){
 					case '"':
 						return decoder.parseQuotedString();
 					case ":":
+						//if this is JSON, but not a string
+						if(dstr.substring(0, 1) != '"'){
+							return decoder.parseValue(true);
+						}
 						break;
 					case "-":
 						dstr = "-"+dstr;
@@ -344,11 +352,11 @@ var LOEN = (function(){
 				}
 			}while(res === null);
 			//replace all escaped double quotes with regular double quotes
-			res = utils.replaceAll(res,"\\\"",'"');
+			res = utils.replaceAll(res,"\\"+"\"","\"");
 			//replace all escaped newlines with regular newlines
-			res = utils.replaceAll(res,"\\n","\n");
+			res = utils.replaceAll(res,"\\"+"n","\n");
 			//replace all escaped carriage returns with regular carriage returns
-			res = utils.replaceAll(res,"\\r","\r");
+			res = utils.replaceAll(res,"\\"+"r","\r");
 			
 			return res;
 		},

@@ -29,10 +29,19 @@ class LOEN{
 	private static function isAlphaNumeric($str){
 		//zero length strings need to return as true in LOEN
 		//on linux a variable of type int will always return false, so make it a string first
-		if(!strlen($str) || ctype_alnum("".$str)){
+		if(!strlen($str)){
 			return TRUE;
 		}
-		return FALSE;
+		$len = strlen($str);
+		for($i=0; $i<$len; $i++){
+			$code = ord(substr($str, $i, 1));
+			if (!($code > 47 && $code < 58) && // numeric (0-9)
+					!($code > 64 && $code < 91) && // upper alpha (A-Z)
+					!($code > 96 && $code < 123)){ // lower alpha (a-z)
+				return FALSE;
+			}
+		}
+		return TRUE;
 	}
 	
 	private static function isAssocArr(array $arr){
@@ -221,6 +230,10 @@ class LOEN{
 				$str = str_replace("\r","\\r",$str);
 			}
 		}
+		//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
+		if($str === "null"){
+			$str = '"'.$str.'"';
+		}
 		return $str;
 	}
 	
@@ -258,6 +271,10 @@ class LOEN{
 				case '"':
 					return self::parseQuotedString($str);
 				case ":":
+					//if this is JSON, but not a string
+					if(substr($str, 0, 1) != '"'){
+						return self::parseValue($str,TRUE);
+					}
 					break;
 				case "-":
 					$str = "-".$str;
@@ -323,7 +340,7 @@ class LOEN{
 			}
 			return (float)$res;
 		}
-		return $res;
+		return (string)$res;
 	}
 	
 	private static function parseQuotedString(&$str){

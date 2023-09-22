@@ -227,8 +227,8 @@ var LOEN = (function(){
 				//escape all carriage returns
 				str = utils.replaceAll(str,"\r","\\r");
 			}
-			//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
-			if(str === "null"){
+			//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
+			if(str === "null" || str === "true" || str === "false" || utils.isNumeric(str)){
 				str = '"' + str + '"';
 			}
 			return str;
@@ -268,7 +268,7 @@ var LOEN = (function(){
 					case '"':
 						return decoder.parseQuotedString();
 					case ":":
-						//if this is JSON, but not a string
+						//if this is possibly JSON, but not a string
 						if(dstr.substring(0, 1) != '"'){
 							return decoder.parseValue(true);
 						}
@@ -328,10 +328,9 @@ var LOEN = (function(){
 				if(res == "f" || res == "false"){
 					return false;
 				}
-				if(!utils.isNumeric(res)){
-					throw "invalid value found in numeric field: ("+res+")";
+				if(utils.isNumeric(res)){
+					return parseFloat(res);
 				}
-				return parseFloat(res);
 			}
 			return res;
 		},

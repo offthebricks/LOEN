@@ -230,8 +230,8 @@ class LOEN{
 				$str = str_replace("\r","\\r",$str);
 			}
 		}
-		//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
-		if($str === "null"){
+		//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
+		if($str === "null" || $str === "true" || $str === "false" || is_numeric($str)){
 			$str = '"'.$str.'"';
 		}
 		return $str;
@@ -271,7 +271,7 @@ class LOEN{
 				case '"':
 					return self::parseQuotedString($str);
 				case ":":
-					//if this is JSON, but not a string
+					//if this is possibly JSON, but not a string
 					if(substr($str, 0, 1) != '"'){
 						return self::parseValue($str,TRUE);
 					}
@@ -335,10 +335,9 @@ class LOEN{
 			if($res == "f" || $res == "false"){
 				return FALSE;
 			}
-			if(!is_numeric($res)){
-				throw new \Exception("invalid value found in numeric field: ($res)");
+			if(is_numeric($res)){
+				return (float)$res;
 			}
-			return (float)$res;
 		}
 		return (string)$res;
 	}

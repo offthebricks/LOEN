@@ -219,10 +219,15 @@ namespace LOEN
 					str = str.Replace("\r", "\\r");
 				}
 			}
-			//to maintain compatibility with JSON, a string 'null' must be encased in double quotes
-			if(str == "null"){
+			//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
+			if(str == "null" || str == "true" || str == "false"){
 				str = "\"" + str + "\"";
 			}
+			try{
+				var dbl = Convert.ToDouble(str);
+				str = "\"" + str + "\"";
+			}
+			catch {}
 			return str;
 		}
 
@@ -780,7 +785,7 @@ namespace LOEN
 					case "\"":
 						return parseQuotedString(ref str);
 					case ":":
-						//if this is JSON, but not a string
+						//if this is possibly JSON, but not a string
 						if(str.Substring(0, 1) != "\""){
 							return parseValue(ref str, true);
 						}
@@ -856,9 +861,9 @@ namespace LOEN
 				{
 					return Convert.ToDouble(res);
 				}
-				catch (Exception e)
+				catch
 				{
-					throw new LOENException("invalid value found in numeric field: (" + res + ")", e);
+					//do nothing, and allow 'res' to be interpreted as a string
 				}
 			}
 			return res;

@@ -136,7 +136,7 @@ var LOEN = (function(){
 			return str;
 		},
 		
-		encode_array: function(arr){
+		encode_array: function(arr, compressOveride){
 			if(!arr){
 				return "";
 			}
@@ -144,6 +144,10 @@ var LOEN = (function(){
 				return "["+encoder.do_encode(arr[0])+"]";
 			}
 			let i, v, check, tmp, str = null, substr, keys = [], compress = config.compressionEnabled();
+			//if there was an error compressing, or some other reason to not compress
+			if(compressOveride){
+				compress = false;
+			}
 			if(compress){
 				for(i=0; i<2; i++){
 					if(arr[i] && typeof(arr[i]) === 'object'){
@@ -194,7 +198,7 @@ var LOEN = (function(){
 						}
 						//verify that this key actually exists
 						if(typeof(arr[i][keys[v]]) === 'undefined'){
-							throw "missing key '" + keys[v] + "' when attempting to compress an array";
+							return encoder.encode_array(arr, true);
 						}
 						tmp = encoder.do_encode(arr[i][keys[v]]);
 						if(utils.isAlphaNumeric(tmp.substring(0,1))){

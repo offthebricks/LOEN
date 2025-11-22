@@ -217,17 +217,10 @@ namespace LOEN
 					str = str.Replace("\n", "\\n");
 					//escape all carriage returns
 					str = str.Replace("\r", "\\r");
-				}
+                    //escape all tabs
+                    str = str.Replace("\t", "\\t");
+                }
 			}
-			//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
-			if(str == "null" || str == "true" || str == "false"){
-				str = "\"" + str + "\"";
-			}
-			try{
-				var dbl = Convert.ToDouble(str);
-				str = "\"" + str + "\"";
-			}
-			catch {}
 			return str;
 		}
 
@@ -895,8 +888,10 @@ namespace LOEN
 			res = res.Replace("\\n", "\n");
 			//replace all escaped carriage returns with regular carriage returns
 			res = res.Replace("\\r", "\r");
+		    //replace all escaped tabs with regular tabs
+		    res = res.Replace("\\t", "\t");
 
-			return res;
+            return res;
 		}
 
 		private static Dictionary<string, object> parseObject(ref string str)

@@ -362,7 +362,7 @@ class LOEN{
 		$res = str_replace("\\n","\n",$res);
 		//replace all escaped carriage returns with regular carriage returns
 		$res = str_replace("\\r","\r",$res);
-		//replace all escaped tabs with regular carriage returns
+		//replace all escaped tabs with regular tabs
 		$res = str_replace("\\t","\t",$res);
 		
 		return $res;
@@ -498,3 +498,4 @@ class LOEN{
 	}
 }
 ?>
+

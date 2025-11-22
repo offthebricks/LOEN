@@ -228,11 +228,9 @@ class LOEN{
 				$str = str_replace("\n","\\n",$str);
 				//escape all carriage returns
 				$str = str_replace("\r","\\r",$str);
+				//escape all tabs
+				$str = str_replace("\t","\\t",$str);
 			}
-		}
-		//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
-		if($str === "null" || $str === "true" || $str === "false" || is_numeric($str)){
-			$str = '"'.$str.'"';
 		}
 		return $str;
 	}
@@ -364,6 +362,8 @@ class LOEN{
 		$res = str_replace("\\n","\n",$res);
 		//replace all escaped carriage returns with regular carriage returns
 		$res = str_replace("\\r","\r",$res);
+		//replace all escaped tabs with regular carriage returns
+		$res = str_replace("\\t","\t",$res);
 		
 		return $res;
 	}

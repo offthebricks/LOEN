@@ -29,8 +29,8 @@ var LOEN = (function(){
 			return str.replace(/[-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 		},
 
-		replaceAll: function(string, find, replace){
-			return string.replace(new RegExp(utils.escapeRegExp(find), 'g'), replace);
+		replaceAll: function(str, find, replace){
+			return str.replace(new RegExp(utils.escapeRegExp(find), 'g'), replace);
 		},
 		
 		//use charCodeAt instead of regular expression for better performance
@@ -99,7 +99,8 @@ var LOEN = (function(){
 					let i, prop, list = Object.getOwnPropertyNames(obj);
 					for(i=0; i<list.length; i++){
 						prop = list[i];
-						if(typeof(obj[prop]) === 'function'){
+						//if(typeof(obj[prop]) === 'function'){
+						if(typeof(obj.propertyIsEnumerable) !== 'function' || !obj.propertyIsEnumerable(prop)){
 							continue;
 						}
 						if(str){
@@ -126,7 +127,7 @@ var LOEN = (function(){
 			else if(typeof(obj) === 'string'){
 				str = ":" + encoder.escapeString(obj);
 			}
-			else if(typeof(obj) === 'function'){
+			else if(typeof(obj) === 'function' || typeof(obj) === 'undefined'){
 				//do nothing
 			}
 			else{
@@ -230,10 +231,8 @@ var LOEN = (function(){
 				str = utils.replaceAll(str,"\n","\\n");
 				//escape all carriage returns
 				str = utils.replaceAll(str,"\r","\\r");
-			}
-			//to maintain compatibility with JSON, numbers and some strings must be encased in double quotes
-			if(str === "null" || str === "true" || str === "false" || utils.isNumeric(str)){
-				str = '"' + str + '"';
+				//escape all tabs
+				str = utils.replaceAll(str,"\t","\\t");
 			}
 			return str;
 		}
@@ -347,6 +346,10 @@ var LOEN = (function(){
 				if(dstr.substring(pos-1,pos) === "\\"){
 					//increment pos so to look for the next double quote
 					pos++;
+					//in case we didn't find the closing quote
+					if(pos + 1 > dstr.length){
+						throw new Error("error parsing quoted string: no closing double quote");
+					}
 				}
 				//no slash so grab value
 				else{
@@ -360,6 +363,8 @@ var LOEN = (function(){
 			res = utils.replaceAll(res,"\\"+"n","\n");
 			//replace all escaped carriage returns with regular carriage returns
 			res = utils.replaceAll(res,"\\"+"r","\r");
+			//replace all escaped tabs with regular carriage returns
+			res = utils.replaceAll(res,"\\"+"t","\t");
 			
 			return res;
 		},

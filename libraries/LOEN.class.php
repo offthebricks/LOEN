@@ -139,7 +139,7 @@ class LOEN{
 	
 	private function encode_array($arr){
 		if(!$arr){
-			return "";
+			return "[]";
 		}
 		if(sizeof($arr) == 1){
 			return "[".$this->doEncode($arr[0])."]";
@@ -498,4 +498,3 @@ class LOEN{
 	}
 }
 ?>
-

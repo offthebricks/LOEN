@@ -363,7 +363,7 @@ namespace LOEN
 		{
 			if(arr.Count == 0)
 			{
-				return "";
+				return "[]";
 			}
 			if(arr.Count == 1)
 			{

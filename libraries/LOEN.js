@@ -139,7 +139,7 @@ var LOEN = (function(){
 		
 		encode_array: function(arr, compressOveride){
 			if(!arr){
-				return "";
+				return "[]";
 			}
 			if(arr.length == 1){
 				return "["+encoder.do_encode(arr[0])+"]";
